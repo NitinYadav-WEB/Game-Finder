@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cartridge — find any game, straight to the source</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14112A;
+    --bg-soft: #1A1735;
+    --surface: #1E1A3D;
+    --surface-2: #262148;
+    --border: #383163;
+    --border-soft: #2B2652;
+    --text: #F4F2FA;
+    --text-muted: #A79FC4;
+    --text-dim: #746C99;
+    --accent: #FFB454;
+    --accent-2: #5EEAD4;
+    --font-head: 'Space Grotesk', sans-serif;
+    --font-body: 'IBM Plex Sans', sans-serif;
+
+    --cat-shooter: #F2637B;
+    --cat-battle: #FFB454;
+    --cat-rpg: #7C9EFF;
+    --cat-strategy: #5EEAD4;
+    --cat-indie: #C792EA;
+    --cat-social: #8CE99A;
+    --cat-adventure: #FF8C5A;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(94,234,212,0.08), transparent 40%),
+      radial-gradient(circle at 90% 15%, rgba(255,180,84,0.07), transparent 35%);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a{ color: inherit; }
+
+  :focus-visible{
+    outline: 2px solid var(--accent-2);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  button{ font-family: inherit; }
+
+  .wrap{
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---------- Header / Hero ---------- */
+
+  header.top{
+    padding: 28px 0 0;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: 0.01em;
+  }
+
+  .logo-mark{ flex-shrink: 0; display:block; }
+
+  .hero{
+    padding: 56px 0 36px;
+    opacity: 0;
+    transform: translateY(14px);
+    animation: rise 0.6s ease forwards 0.1s;
+  }
+
+  @keyframes rise{
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  .hero h1{
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    line-height: 1.1;
+    margin: 0 0 14px;
+    max-width: 14ch;
+  }
+
+  .hero p{
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    max-width: 46ch;
+    margin: 0 0 28px;
+  }
+
+  .search-row{
+    display:flex;
+    gap: 10px;
+    max-width: 560px;
+  }
+
+  .search-box{
+    position: relative;
+    flex: 1;
+  }
+
+  .search-box svg{
+    position:absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .search-box input{
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1rem;
+    font-family: var(--font-body);
+  }
+
+  .search-box input::placeholder{ color: var(--text-dim); }
+
+  .search-box input:focus{
+    border-color: var(--accent-2);
+  }
+
+  .trust-note{
+    margin-top: 14px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    display:flex;
+    align-items:center;
+    gap: 6px;
+  }
+
+  .trust-note .dot{
+    width: 6px; height:6px; border-radius:50%; background: var(--accent-2);
+    flex-shrink:0;
+  }
+
+  /* ---------- Filters ---------- */
+
+  .filters{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 0 32px;
+  }
+
+  .chip{
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+  }
+
+  .chip:hover{ color: var(--text); border-color: var(--text-dim); }
+
+  .chip.active{
+    color: var(--bg);
+    background: var(--accent-2);
+    border-color: var(--accent-2);
+    font-weight: 600;
+  }
+
+  .count-line{
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    padding-bottom: 18px;
+  }
+
+  /* ---------- Grid ---------- */
+
+  main{ padding-bottom: 80px; }
+
+  .grid{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .card{
+    text-align: left;
+    display:flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    padding: 0;
+    color: var(--text);
+    transition: transform .15s ease, border-color .15s ease;
+  }
+
+  .card:hover{
+    transform: translateY(-3px);
+    border-color: var(--card-color, var(--accent-2));
+  }
+
+  .card-cover{
+    height: 96px;
+    position: relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 28% 22%, rgba(255,255,255,0.28), transparent 45%),
+      radial-gradient(rgba(0,0,0,0.16) 1px, transparent 1.4px) 0 0/14px 14px,
+      linear-gradient(155deg, var(--card-color, var(--accent-2)), color-mix(in srgb, var(--card-color, var(--accent-2)) 55%, #0b0920 45%));
+  }
+
+  .icon-badge{
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.16);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink: 0;
+  }
+
+  .cover-icon{
+    width: 24px;
+    height: 24px;
+    color: var(--bg);
+    display:block;
+  }
+
+  .size-tag{
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(20,17,42,0.85);
+    color: var(--text);
+    font-size: 0.68rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .card-body{
+    padding: 12px 14px 16px;
+    display:flex;
+    flex-direction: column;
+    gap: 7px;
+    flex: 1;
+  }
+
+  .card-title{
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .card-dev{
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .card-genre{
+    align-self: flex-start;
+    font-size: 0.7rem;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--card-color, var(--accent-2)) 18%, transparent);
+    color: var(--card-color, var(--accent-2));
+    margin-top: auto;
+  }
+
+  .empty-state{
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+  }
+
+  .empty-state strong{ color: var(--text); display:block; margin-bottom: 6px; font-family: var(--font-head); }
+
+  /* ---------- Detail panel ---------- */
+
+  .scrim{
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 8, 22, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+    z-index: 20;
+  }
+
+  .scrim.open{ opacity: 1; pointer-events: auto; }
+
+  .panel{
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: min(420px, 100%);
+    background: var(--bg-soft);
+    border-left: 1.5px solid var(--border);
+    transform: translateX(100%);
+    transition: transform .25s ease;
+    z-index: 21;
+    overflow-y: auto;
+  }
+
+  .panel.open{ transform: translateX(0); }
+
+  .panel-cover{
+    height: 160px;
+    position: relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 28% 22%, rgba(255,255,255,0.28), transparent 45%),
+      radial-gradient(rgba(0,0,0,0.16) 1px, transparent 1.4px) 0 0/16px 16px,
+      linear-gradient(155deg, var(--card-color, var(--accent-2)), color-mix(in srgb, var(--card-color, var(--accent-2)) 55%, #0b0920 45%));
+  }
+
+  .panel-cover .icon-badge{ width: 64px; height: 64px; }
+  .panel-cover .cover-icon{ width: 32px; height: 32px; }
+
+  .panel-close{
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(20,17,42,0.55);
+    color: var(--text);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .panel-body{ padding: 22px 26px 40px; }
+
+  .panel-genre{
+    display:inline-block;
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--card-color, var(--accent-2)) 18%, transparent);
+    color: var(--card-color, var(--accent-2));
+    margin-bottom: 12px;
+  }
+
+  .panel-body h2{
+    font-family: var(--font-head);
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+  }
+
+  .panel-dev{
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+  }
+
+  .panel-desc{
+    color: var(--text);
+    font-size: 0.95rem;
+    margin-bottom: 22px;
+  }
+
+  .info-rows{
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--border-soft);
+    margin-bottom: 24px;
+  }
+
+  .info-row{
+    display:flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border-soft);
+    font-size: 0.88rem;
+  }
+
+  .info-row .label{ color: var(--text-dim); }
+  .info-row .value{ text-align: right; color: var(--text); }
+  .info-row .value.accent{ color: var(--accent); font-weight: 600; }
+
+  .visit-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: #241705;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .visit-btn:hover{ background: #ffc172; }
+
+  .panel-note{
+    margin-top: 14px;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  /* ---------- Footer ---------- */
+
+  footer{
+    border-top: 1px solid var(--border-soft);
+    padding: 28px 0 50px;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+  }
+
+  footer p{ max-width: 62ch; margin: 0; }
+
+  @media (prefers-reduced-motion: reduce){
+    .hero{ animation: none; opacity: 1; transform: none; }
+    .card, .panel, .scrim, html{ transition: none !important; scroll-behavior: auto; }
+  }
+
+  @media (max-width: 560px){
+    .search-row{ flex-direction: column; }
+    .panel{ width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<svg style="position:absolute; width:0; height:0; overflow:hidden;" aria-hidden="true">
+<defs>
+  <symbol id="icon-pickaxe" viewBox="0 0 24 24">
+    <path d="M5 19 L13 11" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M9 5 C13 2.5 18 3.5 20 7.5 C16.5 9 12 8 9 5 Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-parachute" viewBox="0 0 24 24">
+    <path d="M4 10 A8 8 0 0 1 20 10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M4 10 L10 18 M20 10 L14 18 M12 10 L12 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    <rect x="9" y="18" width="6" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.7"/>
+  </symbol>
+  <symbol id="icon-crosshair" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M12 2v4M12 18v4M2 12h4M18 12h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="icon-laurel-shield" viewBox="0 0 24 24">
+    <path d="M12 3 L19 6 V12 C19 17 15.5 20 12 21 C8.5 20 5 17 5 12 V6 Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-spark-star" viewBox="0 0 24 24">
+    <path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-star-badge" viewBox="0 0 24 24">
+    <path d="M12 2 L14.6 9 L22 9.3 L16 14 L18 21 L12 17 L6 21 L8 14 L2 9.3 L9.4 9 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-d20" viewBox="0 0 24 24">
+    <path d="M12 2 L20 7 V17 L12 22 L4 17 V7 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M12 2 V12 M12 12 L20 7 M12 12 L4 7 M12 12 L20 17 M12 12 L4 17 M12 12 V22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-sprout" viewBox="0 0 24 24">
+    <path d="M12 21 V11" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M12 11 C8 11 6 8 6 5 C10 5 12 7 12 11 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M12 13 C16 13 18 10 18 7 C14 7 12 9 12 13 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-flame" viewBox="0 0 24 24">
+    <path d="M12 2 C9 6 7 9 7 13 C7 17.5 9.5 20 12 20 C14.5 20 17 17.5 17 13 C17 11 16 9.5 15 8.5 C15 11 13.5 12 12.5 11 C12 9 12.5 5 12 2 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-moth-wing" viewBox="0 0 24 24">
+    <path d="M12 4 V20 M12 8 C6 4 2 6 3 11 C4 15 9 14 12 11 M12 8 C18 4 22 6 21 11 C20 15 15 14 12 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="icon-gem" viewBox="0 0 24 24">
+    <path d="M6 9 L12 3 L18 9 L12 21 Z M6 9 H18 M9 9 L12 21 M15 9 L12 21" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-mask" viewBox="0 0 24 24">
+    <rect x="5" y="6" width="14" height="12" rx="6" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M8 10 Q11 8 13 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="icon-rocket" viewBox="0 0 24 24">
+    <path d="M12 2 C15 5 16 10 16 14 L8 14 C8 10 9 5 12 2 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M8 14 L5 19 L9 17 M16 14 L19 19 L15 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="12" cy="9.5" r="1.6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+  </symbol>
+  <symbol id="icon-ring-sword" viewBox="0 0 24 24">
+    <path d="M12 2 V16 M7 6 H17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    <circle cx="12" cy="19" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+  </symbol>
+  <symbol id="icon-crescent-fang" viewBox="0 0 24 24">
+    <path d="M15 3 A9 9 0 1 0 15 21 A7 7 0 1 1 15 3 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M9 12 L11 15 L13 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-circuit-bolt" viewBox="0 0 24 24">
+    <path d="M13 2 L6 13 H11 L9 22 L18 10 H13 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-horseshoe" viewBox="0 0 24 24">
+    <path d="M6 5 C2 9 2 15 6 19 M18 5 C22 9 22 15 18 19 M6 5 A7 6 0 0 1 18 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="icon-crown" viewBox="0 0 24 24">
+    <path d="M4 18 L4 10 L9 14 L12 8 L15 14 L20 10 L20 18 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-globe-blocks" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <path d="M3 12 H21 M12 3 C16 7 16 17 12 21 C8 17 8 7 12 3 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-flask" viewBox="0 0 24 24">
+    <path d="M10 3 H14 V8 L18 18 C18.5 19.5 17 21 15.5 21 H8.5 C7 21 5.5 19.5 6 18 L10 8 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M9 14 H15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="icon-shuriken" viewBox="0 0 24 24">
+    <path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="12" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.4"/>
+  </symbol>
+  <symbol id="icon-portal-ring" viewBox="0 0 24 24">
+    <ellipse cx="9" cy="12" rx="5" ry="8" transform="rotate(-15 9 12)" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <ellipse cx="15" cy="12" rx="5" ry="8" transform="rotate(15 15 12)" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  </symbol>
+  <symbol id="icon-crowbar" viewBox="0 0 24 24">
+    <path d="M5 19 L14 8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M14 8 C15 6 17 5 19 6 C20 8 19 10 17 11 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-gear" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <path d="M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5.6 5.6 L7.8 7.8 M16.2 16.2 L18.4 18.4 M18.4 5.6 L16.2 7.8 M7.8 16.2 L5.6 18.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="icon-building-blocks" viewBox="0 0 24 24">
+    <path d="M4 21 V10 H8 V21 M10 21 V5 H14 V21 M16 21 V13 H20 V21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-house" viewBox="0 0 24 24">
+    <path d="M4 12 L12 4 L20 12 M6 11 V20 H18 V11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="icon-laurel-crown" viewBox="0 0 24 24">
+    <path d="M12 4 V20 M12 8 C9 8 7 10 6 13 M12 8 C15 8 17 10 18 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="icon-card-stack" viewBox="0 0 24 24">
+    <rect x="5" y="7" width="10" height="14" rx="1.5" transform="rotate(-8 5 7)" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <rect x="9" y="5" width="10" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  </symbol>
+  <symbol id="icon-mountain-peak" viewBox="0 0 24 24">
+    <path d="M3 19 L9 8 L13 14 L16 9 L21 19 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="17" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.4"/>
+  </symbol>
+  <symbol id="icon-heart-pixel" viewBox="0 0 24 24">
+    <path d="M12 20 C6 15 3 11.5 3 8 C3 5 5.5 3 8.3 3 C10 3 11.3 4 12 5.3 C12.7 4 14 3 15.7 3 C18.5 3 21 5 21 8 C21 11.5 18 15 12 20 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-bat-wing" viewBox="0 0 24 24">
+    <path d="M12 8 C10 5 6 4 3 6 C5 8 6 10 8 10 C6 12 4 15 5 18 C7 16 9 14 12 14 C15 14 17 16 19 18 C20 15 18 12 16 10 C18 10 19 8 21 6 C18 4 14 5 12 8 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-two-hands" viewBox="0 0 24 24">
+    <path d="M4 14 H10 V10 M20 14 H14 V10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="12" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  </symbol>
+</defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg class="logo-mark" width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#FFB454"/>
+            <stop offset="1" stop-color="#FF8C5A"/>
+          </linearGradient>
+        </defs>
+        <path d="M6 4H21L26 9V26C26 27.1 25.1 28 24 28H8C6.9 28 6 27.1 6 26V4Z" fill="url(#logoGrad)"/>
+        <rect x="10.5" y="9.5" width="11" height="7" rx="1.4" fill="#14112A"/>
+        <rect x="9.5" y="20" width="3" height="4.5" rx="1" fill="#14112A"/>
+        <rect x="14.5" y="20" width="3" height="4.5" rx="1" fill="#14112A"/>
+        <rect x="19.5" y="20" width="3" height="4.5" rx="1" fill="#14112A"/>
+      </svg>
+      Cartridge
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Find any game, straight to the source.</h1>
+    <p>Search a title and get the essentials: what it is, roughly how much space it needs, and a direct link to where you can actually get it.</p>
+    <div class="search-row">
+      <div class="search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="searchInput" type="text" placeholder="Search by name, e.g. Minecraft, Elden Ring…" autocomplete="off" />
+      </div>
+    </div>
+    <div class="trust-note"><span class="dot"></span> Every link below points to the game's own official site or store page — no mirrors, no third-party download hosts.</div>
+  </div>
+</section>
+
+<main>
+  <div class="wrap">
+    <div class="filters" id="filters"></div>
+    <div class="count-line" id="countLine"></div>
+    <ul class="grid" id="grid"></ul>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Sizes shown are approximate — actual download size varies by platform, region, and version. Check the official page before downloading for exact figures.</p>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel" aria-hidden="true">
+  <div class="panel-cover" id="panelCover">
+    <button class="panel-close" id="panelClose" aria-label="Close details">✕</button>
+    <span class="icon-badge" aria-hidden="true"><svg class="cover-icon"><use id="panelIconUse" href="#icon-pickaxe"/></svg></span>
+  </div>
+  <div class="panel-body">
+    <span class="panel-genre" id="panelGenre"></span>
+    <h2 id="panelTitle"></h2>
+    <div class="panel-dev" id="panelDev"></div>
+    <p class="panel-desc" id="panelDesc"></p>
+    <div class="info-rows">
+      <div class="info-row"><span class="label">Download size</span><span class="value accent" id="panelSize"></span></div>
+      <div class="info-row"><span class="label">Platforms</span><span class="value" id="panelPlatforms"></span></div>
+      <div class="info-row"><span class="label">Released</span><span class="value" id="panelYear"></span></div>
+    </div>
+    <a class="visit-btn" id="panelLink" href="#" target="_blank" rel="noopener noreferrer">Visit official website</a>
+    <p class="panel-note">Opens in a new tab, directly on the publisher's site.</p>
+  </div>
+</aside>
+
+<script>
+  const CATS = [
+    { id: 'all', label: 'All games' },
+    { id: 'shooter', label: 'Shooter', color: 'var(--cat-shooter)' },
+    { id: 'battle', label: 'Battle royale', color: 'var(--cat-battle)' },
+    { id: 'rpg', label: 'RPG', color: 'var(--cat-rpg)' },
+    { id: 'strategy', label: 'Strategy & sim', color: 'var(--cat-strategy)' },
+    { id: 'indie', label: 'Sandbox & indie', color: 'var(--cat-indie)' },
+    { id: 'social', label: 'Sports & social', color: 'var(--cat-social)' },
+    { id: 'adventure', label: 'Action-adventure', color: 'var(--cat-adventure)' },
+  ];
+
+  const GAMES = [
+    { name:'Minecraft', dev:'Mojang Studios', cat:'indie', icon:'pickaxe', year:2011, blurb:'Build, mine, and survive in an infinite blocky world you can shape however you like.', url:'https://www.minecraft.net', size:'~1 GB', platforms:'Windows, macOS, Linux' },
+    { name:'Fortnite', dev:'Epic Games', cat:'battle', icon:'parachute', year:2017, blurb:"Drop into a shrinking island with up to 99 other players and be the last one standing.", url:'https://www.fortnite.com', size:'~90 GB', platforms:'Windows, macOS, consoles' },
+    { name:'Valorant', dev:'Riot Games', cat:'shooter', icon:'crosshair', year:2020, blurb:'A 5v5 tactical shooter built around precise gunplay and unique agent abilities.', url:'https://playvalorant.com', size:'~30 GB', platforms:'Windows' },
+    { name:'League of Legends', dev:'Riot Games', cat:'strategy', icon:'laurel-shield', year:2009, blurb:"Team up in 5v5 battles to push lanes and destroy the enemy's base.", url:'https://www.leagueoflegends.com', size:'~16 GB', platforms:'Windows, macOS' },
+    { name:'Counter-Strike 2', dev:'Valve', cat:'shooter', icon:'crosshair', year:2023, blurb:"The long-running tactical shooter, rebuilt on Valve's Source 2 engine.", url:'https://www.counter-strike.net', size:'~85 GB', platforms:'Windows, macOS, Linux' },
+    { name:'Dota 2', dev:'Valve', cat:'strategy', icon:'laurel-shield', year:2013, blurb:'A deeply strategic 5v5 battle between two teams of heroes, with a decade of depth.', url:'https://www.dota2.com', size:'~45 GB', platforms:'Windows, macOS, Linux' },
+    { name:'Genshin Impact', dev:'HoYoverse', cat:'rpg', icon:'spark-star', year:2020, blurb:'Explore the open world of Teyvat with elemental combat and a growing cast of characters.', url:'https://genshin.hoyoverse.com', size:'~100 GB', platforms:'Windows, mobile' },
+    { name:'Apex Legends', dev:'Respawn Entertainment', cat:'battle', icon:'parachute', year:2019, blurb:'Squad-based battle royale built on hero abilities and fast, fluid movement.', url:'https://www.ea.com/games/apex-legends', size:'~75 GB', platforms:'Windows, consoles' },
+    { name:'Grand Theft Auto V', dev:'Rockstar Games', cat:'adventure', icon:'star-badge', year:2013, blurb:'Roam a sprawling open-world city across three interwoven criminal stories.', url:'https://www.rockstargames.com/V', size:'~110 GB', platforms:'Windows, consoles' },
+    { name:"Baldur's Gate 3", dev:'Larian Studios', cat:'rpg', icon:'d20', year:2023, blurb:'A story-rich RPG built on Dungeons & Dragons rules, playable solo or in co-op.', url:'https://baldursgate3.game', size:'~150 GB', platforms:'Windows, macOS, consoles' },
+    { name:'Stardew Valley', dev:'ConcernedApe', cat:'indie', icon:'sprout', year:2016, blurb:'Inherit a run-down farm and build a new life in the countryside.', url:'https://www.stardewvalley.net', size:'~500 MB', platforms:'Windows, macOS, Linux, mobile' },
+    { name:'Hades', dev:'Supergiant Games', cat:'rpg', icon:'flame', year:2020, blurb:'Fight your way out of the Underworld in a fast, story-driven roguelike.', url:'https://www.supergiantgames.com/games/hades', size:'~6 GB', platforms:'Windows, macOS, consoles' },
+    { name:'Hollow Knight', dev:'Team Cherry', cat:'indie', icon:'moth-wing', year:2017, blurb:'Explore a vast, hand-drawn insect kingdom full of secrets and tough bosses.', url:'https://www.hollowknight.com', size:'~9 GB', platforms:'Windows, macOS, Linux, consoles' },
+    { name:'Terraria', dev:'Re-Logic', cat:'indie', icon:'gem', year:2011, blurb:'Dig, build, and fight your way through a huge 2D sandbox world.', url:'https://terraria.org', size:'~600 MB', platforms:'Windows, macOS, Linux, mobile' },
+    { name:'Among Us', dev:'Innersloth', cat:'social', icon:'mask', year:2018, blurb:"Work together to keep the ship running — unless you're the impostor.", url:'https://innersloth.com/games/among-us', size:'~250 MB', platforms:'Windows, mobile' },
+    { name:'Rocket League', dev:'Psyonix', cat:'social', icon:'rocket', year:2015, blurb:"Soccer, but everyone's driving rocket-powered cars.", url:'https://www.rocketleague.com', size:'~20 GB', platforms:'Windows, consoles' },
+    { name:'Elden Ring', dev:'FromSoftware', cat:'rpg', icon:'ring-sword', year:2022, blurb:"An open-world take on FromSoftware's punishing, precise dark-fantasy combat.", url:'https://store.steampowered.com/app/1245620/ELDEN_RING/', size:'~60 GB', platforms:'Windows, consoles' },
+    { name:'Cyberpunk 2077', dev:'CD Projekt Red', cat:'rpg', icon:'circuit-bolt', year:2020, blurb:'Live out a cybernetic life story in the sprawling, neon city of Night City.', url:'https://www.cyberpunk.net', size:'~70 GB', platforms:'Windows, consoles' },
+    { name:'The Witcher 3: Wild Hunt', dev:'CD Projekt Red', cat:'rpg', icon:'crescent-fang', year:2015, blurb:'Hunt monsters and navigate political intrigue as Geralt of Rivia.', url:'https://www.thewitcher.com/en/witcher3', size:'~50 GB', platforms:'Windows, macOS, consoles' },
+    { name:'Red Dead Redemption 2', dev:'Rockstar Games', cat:'adventure', icon:'horseshoe', year:2018, blurb:'Ride through the dying American frontier in this outlaw epic.', url:'https://www.rockstargames.com/reddeadredemption2', size:'~150 GB', platforms:'Windows, consoles' },
+    { name:'World of Warcraft', dev:'Blizzard Entertainment', cat:'rpg', icon:'crown', year:2004, blurb:'The long-running fantasy MMO, still adding new expansions and stories.', url:'https://worldofwarcraft.blizzard.com', size:'~90 GB', platforms:'Windows, macOS' },
+    { name:'Overwatch 2', dev:'Blizzard Entertainment', cat:'shooter', icon:'crosshair', year:2022, blurb:'Team-based hero shooter with a growing cast of characters and abilities.', url:'https://overwatch.blizzard.com', size:'~40 GB', platforms:'Windows, consoles' },
+    { name:'Rainbow Six Siege', dev:'Ubisoft', cat:'shooter', icon:'crosshair', year:2015, blurb:'Destructible environments and close-quarters tactics define this squad shooter.', url:'https://www.ubisoft.com/en-us/game/rainbow-six/siege', size:'~85 GB', platforms:'Windows, consoles' },
+    { name:'PUBG: Battlegrounds', dev:'Krafton', cat:'battle', icon:'parachute', year:2017, blurb:'Land, loot, and survive as the play area shrinks around you.', url:'https://pubg.com', size:'~35 GB', platforms:'Windows, consoles' },
+    { name:'Roblox', dev:'Roblox Corporation', cat:'indie', icon:'globe-blocks', year:2006, blurb:'Play and build millions of user-made experiences inside one platform.', url:'https://www.roblox.com', size:'~1 GB', platforms:'Windows, macOS, mobile' },
+    { name:'Path of Exile', dev:'Grinding Gear Games', cat:'rpg', icon:'flask', year:2013, blurb:'A deep, free-to-play dungeon crawler with an enormous skill system.', url:'https://www.pathofexile.com', size:'~50 GB', platforms:'Windows, macOS' },
+    { name:'Warframe', dev:'Digital Extremes', cat:'rpg', icon:'shuriken', year:2013, blurb:'Fast, acrobatic space-ninja combat in an ever-expanding sci-fi universe.', url:'https://www.warframe.com', size:'~35 GB', platforms:'Windows, consoles' },
+    { name:'Destiny 2', dev:'Bungie', cat:'shooter', icon:'crosshair', year:2017, blurb:'A sci-fi shooter built around raids, seasons, and gear-hunting.', url:'https://www.bungie.net/7/en/Destiny', size:'~110 GB', platforms:'Windows, consoles' },
+    { name:'Team Fortress 2', dev:'Valve', cat:'shooter', icon:'crosshair', year:2007, blurb:"Nine distinct classes battle it out in Valve's stylish team shooter.", url:'https://www.teamfortress.com', size:'~20 GB', platforms:'Windows, macOS, Linux' },
+    { name:'Portal 2', dev:'Valve', cat:'indie', icon:'portal-ring', year:2011, blurb:'Bend physics with a portal gun across increasingly clever test chambers.', url:'https://store.steampowered.com/app/620/Portal_2/', size:'~8 GB', platforms:'Windows, macOS, Linux' },
+    { name:'Half-Life: Alyx', dev:'Valve', cat:'shooter', icon:'crowbar', year:2020, blurb:'A full VR return to the Half-Life universe.', url:'https://www.half-life.com/en/alyx', size:'~55 GB', platforms:'Windows (VR)' },
+    { name:'Factorio', dev:'Wube Software', cat:'strategy', icon:'gear', year:2020, blurb:'Automate an ever-growing factory on an alien planet, one conveyor belt at a time.', url:'https://www.factorio.com', size:'~1 GB', platforms:'Windows, macOS, Linux' },
+    { name:'Cities: Skylines', dev:'Colossal Order', cat:'strategy', icon:'building-blocks', year:2015, blurb:'Design and manage a city from a small town to a sprawling metropolis.', url:'https://www.paradoxinteractive.com/games/cities-skylines', size:'~7 GB', platforms:'Windows, macOS, Linux' },
+    { name:'The Sims 4', dev:'Maxis', cat:'strategy', icon:'house', year:2014, blurb:'Create people, build houses, and direct their daily lives.', url:'https://www.ea.com/games/the-sims/the-sims-4', size:'~20 GB', platforms:'Windows, macOS' },
+    { name:'Civilization VI', dev:'Firaxis Games', cat:'strategy', icon:'laurel-crown', year:2016, blurb:'Build an empire from the Stone Age to the Information Age.', url:'https://civilization.2k.com/civ-vi/', size:'~12 GB', platforms:'Windows, macOS, Linux' },
+    { name:'Slay the Spire', dev:'MegaCrit', cat:'indie', icon:'card-stack', year:2019, blurb:'Climb a strange spire, building a deck one card at a time.', url:'https://store.steampowered.com/app/646570/Slay_the_Spire/', size:'~500 MB', platforms:'Windows, macOS, Linux' },
+    { name:'Celeste', dev:'Extremely OK Games', cat:'indie', icon:'mountain-peak', year:2018, blurb:'A tight, tough-as-nails platformer about climbing a mountain.', url:'https://www.celestegame.com', size:'~1.5 GB', platforms:'Windows, macOS, Linux, consoles' },
+    { name:'Undertale', dev:'Toby Fox', cat:'indie', icon:'heart-pixel', year:2015, blurb:'A small RPG where you can befriend, not just fight, every enemy.', url:'https://undertale.com', size:'~200 MB', platforms:'Windows, macOS, Linux' },
+    { name:'Vampire Survivors', dev:'poncle', cat:'indie', icon:'bat-wing', year:2022, blurb:'Survive hordes of enemies as your arsenal auto-fires and grows around you.', url:'https://store.steampowered.com/app/1794680/Vampire_Survivors/', size:'~500 MB', platforms:'Windows, macOS' },
+    { name:'It Takes Two', dev:'Hazelight Studios', cat:'adventure', icon:'two-hands', year:2021, blurb:'A two-player-only adventure built entirely around cooperation.', url:'https://www.ea.com/games/it-takes-two', size:'~50 GB', platforms:'Windows, consoles' },
+  ];
+
+  const catMap = Object.fromEntries(CATS.map(c => [c.id, c]));
+  let activeCat = 'all';
+  let query = '';
+
+  const filtersEl = document.getElementById('filters');
+  const gridEl = document.getElementById('grid');
+  const countEl = document.getElementById('countLine');
+
+  function renderFilters(){
+    filtersEl.innerHTML = '';
+    CATS.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'chip' + (c.id === activeCat ? ' active' : '');
+      btn.textContent = c.label;
+      btn.addEventListener('click', () => { activeCat = c.id; renderFilters(); renderGrid(); });
+      filtersEl.appendChild(btn);
+    });
+  }
+
+  function matches(game){
+    const inCat = activeCat === 'all' || game.cat === activeCat;
+    const q = query.trim().toLowerCase();
+    const inSearch = !q || game.name.toLowerCase().includes(q) || game.dev.toLowerCase().includes(q);
+    return inCat && inSearch;
+  }
+
+  function renderGrid(){
+    const results = GAMES.filter(matches);
+    countEl.textContent = results.length === GAMES.length
+      ? `${results.length} games`
+      : `${results.length} of ${GAMES.length} games`;
+
+    gridEl.innerHTML = '';
+
+    if (results.length === 0){
+      const empty = document.createElement('li');
+      empty.style.gridColumn = '1 / -1';
+      empty.className = 'empty-state';
+      empty.innerHTML = `<strong>No games match "${query}"</strong>Try a different spelling, or clear the search and browse a category instead.`;
+      gridEl.appendChild(empty);
+      return;
+    }
+
+    results.forEach(game => {
+      const cat = catMap[game.cat];
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.className = 'card';
+      btn.style.setProperty('--card-color', cat.color);
+      btn.innerHTML = `
+        <div class="card-cover">
+          <span class="icon-badge" aria-hidden="true"><svg class="cover-icon"><use href="#icon-${game.icon}"/></svg></span>
+          <span class="size-tag">${game.size}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">${game.name}</div>
+          <div class="card-dev">${game.dev} · ${game.year}</div>
+          <span class="card-genre">${cat.label}</span>
+        </div>
+      `;
+      btn.addEventListener('click', () => openPanel(game));
+      li.appendChild(btn);
+      gridEl.appendChild(li);
+    });
+  }
+
+  // ---- Detail panel ----
+  const panel = document.getElementById('panel');
+  const scrim = document.getElementById('scrim');
+
+  function openPanel(game){
+    const cat = catMap[game.cat];
+    document.getElementById('panelCover').style.setProperty('--card-color', cat.color);
+    document.getElementById('panelIconUse').setAttribute('href', '#icon-' + game.icon);
+    document.getElementById('panelGenre').textContent = cat.label;
+    document.getElementById('panelGenre').style.setProperty('--card-color', cat.color);
+    document.getElementById('panelTitle').textContent = game.name;
+    document.getElementById('panelDev').textContent = `${game.dev}`;
+    document.getElementById('panelDesc').textContent = game.blurb;
+    document.getElementById('panelSize').textContent = game.size;
+    document.getElementById('panelPlatforms').textContent = game.platforms;
+    document.getElementById('panelYear').textContent = game.year;
+    document.getElementById('panelLink').href = game.url;
+
+    panel.classList.add('open');
+    scrim.classList.add('open');
+    panel.setAttribute('aria-hidden', 'false');
+    document.getElementById('panelClose').focus();
+  }
+
+  function closePanel(){
+    panel.classList.remove('open');
+    scrim.classList.remove('open');
+    panel.setAttribute('aria-hidden', 'true');
+  }
+
+  document.getElementById('panelClose').addEventListener('click', closePanel);
+  scrim.addEventListener('click', closePanel);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+
+  document.getElementById('searchInput').addEventListener('input', e => {
+    query = e.target.value;
+    renderGrid();
+  });
+
+  renderFilters();
+  renderGrid();
+</script>
+
+</body>
+</html>
